@@ -52,6 +52,13 @@ def compute_label_dice(gt, pred):
         dice_lst.append(dice)
     return np.mean(dice_lst)
 
+x_offset = 30
+y_offset = 30
+z_offset = 30
+x_size = 96
+y_size = 96
+z_size = 96
+
 
 def train():
     make_dirs()
@@ -62,15 +69,39 @@ def train():
     print("log_name: ", log_name)
     f = open(os.path.join(args.log_dir, log_name + ".txt"), "w")
 
+    #cropping and ofsetting the fixed image
+
+
     # 读入fixed图像 [D, W, H] = 160×192×160
     f_img = sitk.ReadImage(args.atlas_file)
+
+    cropper = sitk.CropImageFilter()
+    cropper.SetLowerBoundaryCropSize([0 + x_offset, 0 + y_offset, 0 + z_offset])
+    cropper.SetUpperBoundaryCropSize([160 - x_size - x_offset, 192 - y_size - y_offset, 160 - z_size - z_offset])
+    f_img = cropper.Execute(f_img)
+    #sitk.WriteImage(f_img, "fixed.nii.gz")
+    #image_viewer.Execute(f_img)
+    
+
+
+    
+
+    print(f_img.GetDimension())
+    print(f_img.GetSize())
+    print(f_img.GetSpacing())
+    #return
     input_fixed = sitk.GetArrayFromImage(f_img)[np.newaxis, np.newaxis, ...]
+
     vol_size = input_fixed.shape[2:]
     # [B, C, D, W, H]
     input_fixed_eval = torch.from_numpy(input_fixed).to(device).float()
     input_fixed = np.repeat(input_fixed, args.batch_size, axis=0)
     input_fixed = torch.from_numpy(input_fixed).to(device).float()
-    fixed_label = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join(args.label_dir, "S01.delineation.structure.label.nii.gz")))[np.newaxis, np.newaxis, ...]
+
+    f_img = sitk.ReadImage(os.path.join(args.label_dir, "S01.delineation.structure.label.nii.gz"))
+    f_img = cropper.Execute(f_img)
+
+    fixed_label = sitk.GetArrayFromImage(f_img)[np.newaxis, np.newaxis, ...]
     fixed_label = torch.from_numpy(fixed_label).to(device).float()
 
 
@@ -108,45 +139,52 @@ def train():
         print('epoch:', i)
         input_moving_all = iter(DL)
         for input_moving, fig_name in input_moving_all:
+            #print('batch')
             # [B, C, D, W, H]
             fig_name = fig_name[0]
             input_moving = input_moving.to(device).float()
-
+            #print('fig')
             # Run the data through the model to produce warp and flow field
 
             flow_m2f = net(input_fixed, input_moving)
             m2f = STN(input_fixed, flow_m2f)
+            #print('flow field')
 
             # Calculate loss
             sim_loss = sim_loss_fn(m2f, input_moving)
             grad_loss = grad_loss_fn(flow_m2f)
             # zero_loss = zero_loss_fn(flow_m2f, zero)
             loss = sim_loss + args.alpha * grad_loss #  + zero_loss
+            #print('loss')
 
-            print("%d, %s, %f, %f, %f" % (i, fig_name, loss.item(), sim_loss.item(), grad_loss.item()), file=f)
+            #print("%d, %s, %f, %f, %f", i, fig_name, loss.item(), sim_loss.item(), grad_loss.item())
 
             # Backwards and optimize
             opt.zero_grad()
             loss.backward()
             opt.step()
 
+            #print('optimise')
+
             # inverse fixed image and moving image
             flow_m2f = net(input_moving, input_fixed)
             m2f = STN(input_moving, flow_m2f)
-
+            #print('inverse')
 
             # Calculate loss
             sim_loss = sim_loss_fn(m2f, input_fixed)
             grad_loss = grad_loss_fn(flow_m2f)
             # zero_loss = zero_loss_fn(flow_m2f, zero)
             loss = sim_loss + args.alpha * grad_loss #  + zero_loss
+            #print('loss2')
 
-            print("%d, %s, %f, %f, %f" % (i, fig_name, loss.item(), sim_loss.item(), grad_loss.item()), file=f)
+            #print( i, fig_name, loss.item(), sim_loss.item(), grad_loss.item())
 
             # Backwards and optimize
             opt.zero_grad()
             loss.backward()
             opt.step()
+            #print('optimise2')
 
         test_file_lst = glob.glob(os.path.join(args.test_dir, "*.nii.gz"))
 
@@ -159,11 +197,17 @@ def train():
             fig_name = file[58:60]
             name = os.path.split(file)[1]
             # 读入moving图像
-            input_moving = sitk.GetArrayFromImage(sitk.ReadImage(file))[np.newaxis, np.newaxis, ...]
+
+            t_img = sitk.ReadImage(file)
+            t_img = cropper.Execute(t_img)
+
+            input_moving = sitk.GetArrayFromImage(t_img)[np.newaxis, np.newaxis, ...]
             input_moving = torch.from_numpy(input_moving).to(device).float()
             # 读入moving图像对应的label
             label_file = glob.glob(os.path.join(args.label_dir, name[:3] + "*"))[0]
-            input_label = sitk.GetArrayFromImage(sitk.ReadImage(label_file))
+            t_img = sitk.ReadImage(label_file)
+            t_img = cropper.Execute(t_img)
+            input_label = sitk.GetArrayFromImage(t_img)
 
             # 获得配准后的图像和label
             pred_flow = net(input_fixed_eval, input_moving)
