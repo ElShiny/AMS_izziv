@@ -19,8 +19,7 @@ from utils.helper_functions import *
 import matplotlib.pyplot as plt
 import wandb
 
-import warnings
-warnings.filterwarnings("ignore")
+#warnings.filterwarnings("ignore")
 
 from Models.TransMatch import TransMatch
 
@@ -61,7 +60,7 @@ def save_image(img, ref_img, name):
 
 
 def compute_label_dice(gt, pred):
-    # 需要计算的标签类别，不包括背景和图像中不存在的区域
+    # list of classes to calculate
     cls_lst = [1,2,3,4,5,6,7,8,10,11]
     # cls_lst = [182]
     dice_lst = []
@@ -79,7 +78,7 @@ def train():
     #torch.use_deterministic_algorithms(True)
     device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else 'cpu')
 
-    # 日志文件
+    # create a log file
     log_name = str(args.n_iter) + "_" + str(args.lr) + "_" + str(args.alpha)
     print("log_name: ", log_name)
     f = open(os.path.join(args.log_dir, log_name + ".txt"), "w")
@@ -88,40 +87,16 @@ def train():
     img_name = os.listdir(args.train_dir)[0]
     t_img = sitk.ReadImage(args.train_dir+ "\\" + img_name)
     t_arr = sitk.GetArrayFromImage(t_img)
-    #t_arr = np.pad(t_arr, ((16, 16), (0, 0), (16, 16)), 'constant', constant_values=0)
-    t_arr_test = t_arr[::2, ::2, ::2]
-    vol_size = t_arr_test.shape
+    vol_size = t_arr.shape
     print(vol_size)
 
-
-    
-    #return
-
-    ## for testing
-    #input_fixed_eval = torch.from_numpy(input_fixed).to(device).float()
-    ##
-    #input_fixed = np.repeat(input_fixed, args.batch_size, axis=0)
-    #input_fixed = torch.from_numpy(input_fixed).to(device).float()
-
-    #for testing
-    #f_img = sitk.ReadImage(os.path.join(args.label_dir, "S01.delineation.structure.label.nii.gz"))
-    #fixed_label = sitk.GetArrayFromImage(f_img)[np.newaxis, np.newaxis, ...]
-    #fixed_label = torch.from_numpy(fixed_label).to(device).float()
-
-
-    # 创建配准网络（net）和STN
+    # configure net
     net = TransMatch(args).to(device)
 
     iterEpoch = 1
-    contTrain = False
-    if contTrain:
-        checkpoint = torch.load('./Checkpoint/500.pth')
-        net.load_state_dict(checkpoint)
-        iterEpoch = 501
 
     STN = SpatialTransformer(vol_size).to(device)
     STN_label = SpatialTransformer(vol_size, mode="nearest").to(device)
-    # UNet.train()
     net.train()
     STN.train()
 
@@ -265,7 +240,7 @@ def save_checkpoint(state, save_dir='models', filename='checkpoint.pth.tar', max
     #    model_lists = natsorted(glob.glob(save_dir + '*'))
     #if not os.path.exists(save_dir):
     #    os.makedirs(save_dir)
-    torch.save(state, save_dir+filename)
+    torch.save(state, save_dir+filename) 
 
 if __name__ == "__main__":
     with warnings.catch_warnings():
