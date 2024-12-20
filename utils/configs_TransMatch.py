@@ -48,7 +48,7 @@ def get_TransMatch_LPBA40_config():
     config.depths = (2, 2, 4, 2)
     config.num_heads = (4, 4, 8, 8)
     # config.num_heads = (4, 4, 8, 8)
-    config.window_size = (3, 3, 4)
+    config.window_size = (6, 6, 8)
     config.mlp_ratio = 4
     config.pat_merg_rf = 4
     config.qkv_bias = False
@@ -60,5 +60,5 @@ def get_TransMatch_LPBA40_config():
     config.use_checkpoint = False
     config.out_indices = (0, 1, 2, 3)
     config.reg_head_chan = 16
-    config.img_size = (96, 96, 128)
+    config.img_size = (192, 192, 256)
     return config

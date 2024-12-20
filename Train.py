@@ -29,10 +29,11 @@ wandb.init(
 
     # track hyperparameters and run metadata
     config={
-    "learning_rate": 0.0004,
     "architecture": "TransMatch",
     "dataset": "ThoraxCBCT",
     "epochs": args.n_iter,
+    "learning_rate": args.lr,
+
     }
 )
 
@@ -77,6 +78,7 @@ def train():
     torch.manual_seed(life)
     #torch.use_deterministic_algorithms(True)
     device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else 'cpu')
+
 
     # create a log file
     log_name = str(args.n_iter) + "_" + str(args.lr) + "_" + str(args.alpha)
