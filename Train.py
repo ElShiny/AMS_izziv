@@ -11,11 +11,31 @@ import torch.utils.data as Data
 # internal imports
 from utils import losses
 from utils.config import args
-from utils.datagenerators_atlas import Dataset
+from utils.datagenerators_atlas import AMS_Dataset, AMS_Dataset_val
 from Models.STN import SpatialTransformer
 from natsort import natsorted
+from utils.helper_functions import *
+
+import matplotlib.pyplot as plt
+import wandb
+
+import warnings
+warnings.filterwarnings("ignore")
 
 from Models.TransMatch import TransMatch
+
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="AMS_iziv",
+
+    # track hyperparameters and run metadata
+    config={
+    "learning_rate": 0.0004,
+    "architecture": "TransMatch",
+    "dataset": "ThoraxCBCT",
+    "epochs": args.n_iter,
+    }
+)
 
 def count_parameters(model):
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
@@ -42,9 +62,7 @@ def save_image(img, ref_img, name):
 
 def compute_label_dice(gt, pred):
     # 需要计算的标签类别，不包括背景和图像中不存在的区域
-    cls_lst = [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 61, 62,
-            63, 64, 65, 66, 67, 68, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 101, 102, 121, 122, 161, 162,
-            163, 164, 165, 166]
+    cls_lst = [1,2,3,4,5,6,7,8,10,11]
     # cls_lst = [182]
     dice_lst = []
     for cls in cls_lst:
@@ -52,16 +70,13 @@ def compute_label_dice(gt, pred):
         dice_lst.append(dice)
     return np.mean(dice_lst)
 
-x_offset = 30
-y_offset = 30
-z_offset = 30
-x_size = 96
-y_size = 96
-z_size = 96
 
 
 def train():
     make_dirs()
+    life = 42
+    torch.manual_seed(life)
+    #torch.use_deterministic_algorithms(True)
     device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else 'cpu')
 
     # 日志文件
@@ -69,40 +84,29 @@ def train():
     print("log_name: ", log_name)
     f = open(os.path.join(args.log_dir, log_name + ".txt"), "w")
 
-    #cropping and ofsetting the fixed image
-
-
-    # 读入fixed图像 [D, W, H] = 160×192×160
-    f_img = sitk.ReadImage(args.atlas_file)
-
-    cropper = sitk.CropImageFilter()
-    cropper.SetLowerBoundaryCropSize([0 + x_offset, 0 + y_offset, 0 + z_offset])
-    cropper.SetUpperBoundaryCropSize([160 - x_size - x_offset, 192 - y_size - y_offset, 160 - z_size - z_offset])
-    f_img = cropper.Execute(f_img)
-    #sitk.WriteImage(f_img, "fixed.nii.gz")
-    #image_viewer.Execute(f_img)
-    
+    #get image size
+    img_name = os.listdir(args.train_dir)[0]
+    t_img = sitk.ReadImage(args.train_dir+ "\\" + img_name)
+    t_arr = sitk.GetArrayFromImage(t_img)
+    #t_arr = np.pad(t_arr, ((16, 16), (0, 0), (16, 16)), 'constant', constant_values=0)
+    t_arr_test = t_arr[::2, ::2, ::2]
+    vol_size = t_arr_test.shape
+    print(vol_size)
 
 
     
-
-    print(f_img.GetDimension())
-    print(f_img.GetSize())
-    print(f_img.GetSpacing())
     #return
-    input_fixed = sitk.GetArrayFromImage(f_img)[np.newaxis, np.newaxis, ...]
 
-    vol_size = input_fixed.shape[2:]
-    # [B, C, D, W, H]
-    input_fixed_eval = torch.from_numpy(input_fixed).to(device).float()
-    input_fixed = np.repeat(input_fixed, args.batch_size, axis=0)
-    input_fixed = torch.from_numpy(input_fixed).to(device).float()
+    ## for testing
+    #input_fixed_eval = torch.from_numpy(input_fixed).to(device).float()
+    ##
+    #input_fixed = np.repeat(input_fixed, args.batch_size, axis=0)
+    #input_fixed = torch.from_numpy(input_fixed).to(device).float()
 
-    f_img = sitk.ReadImage(os.path.join(args.label_dir, "S01.delineation.structure.label.nii.gz"))
-    f_img = cropper.Execute(f_img)
-
-    fixed_label = sitk.GetArrayFromImage(f_img)[np.newaxis, np.newaxis, ...]
-    fixed_label = torch.from_numpy(fixed_label).to(device).float()
+    #for testing
+    #f_img = sitk.ReadImage(os.path.join(args.label_dir, "S01.delineation.structure.label.nii.gz"))
+    #fixed_label = sitk.GetArrayFromImage(f_img)[np.newaxis, np.newaxis, ...]
+    #fixed_label = torch.from_numpy(fixed_label).to(device).float()
 
 
     # 创建配准网络（net）和STN
@@ -126,118 +130,141 @@ def train():
     grad_loss_fn = losses.gradient_loss
 
     # Get all the names of the training data
-    train_files = glob.glob(os.path.join(args.train_dir, '*.nii.gz'))
-    DS = Dataset(files=train_files)
+    #train_files = glob.glob(os.path.join(args.train_dir, '*.nii.gz'))
+    DS = AMS_Dataset(json_path=args.dataset_cfg)
     print("Number of training images: ", len(DS))
     DL = Data.DataLoader(DS, batch_size=args.batch_size, shuffle=True, num_workers=0, drop_last=True)
 
+    DSV = AMS_Dataset_val(json_path=args.dataset_cfg)
+    print("Number of validating images: ", len(DSV))
+    DLV = Data.DataLoader(DSV, batch_size=1, shuffle=False, num_workers=0, drop_last=False)
+
+    a = 0
+
+
+    
+
     # Training loop.
     for i in range(iterEpoch, args.n_iter + 1):
+        
         # Generate the moving images and convert them to tensors.
         net.train()
         STN.train()
         print('epoch:', i)
-        input_moving_all = iter(DL)
-        for input_moving, fig_name in input_moving_all:
-            #print('batch')
-            # [B, C, D, W, H]
-            fig_name = fig_name[0]
-            input_moving = input_moving.to(device).float()
-            #print('fig')
-            # Run the data through the model to produce warp and flow field
+        input_images_all = iter(DL)
+        input_validation_all = iter(DLV)
+        pair = 0
 
+        for input_fixed, input_moving, fixed_name, moving_name in input_images_all:
+            
+            # [B, C, D, W, H]
+            print(i, fixed_name, moving_name)
+
+            #fig_name = fig_name[0]
+            input_moving = input_moving.to(device).float()
+            input_fixed = input_fixed.to(device).float()
+
+            # Run the data through the model to produce warp and flow field
             flow_m2f = net(input_fixed, input_moving)
             m2f = STN(input_fixed, flow_m2f)
-            #print('flow field')
 
             # Calculate loss
             sim_loss = sim_loss_fn(m2f, input_moving)
             grad_loss = grad_loss_fn(flow_m2f)
             # zero_loss = zero_loss_fn(flow_m2f, zero)
             loss = sim_loss + args.alpha * grad_loss #  + zero_loss
-            #print('loss')
 
-            #print("%d, %s, %f, %f, %f", i, fig_name, loss.item(), sim_loss.item(), grad_loss.item())
-
-            # Backwards and optimize
+            # Backwards and optimise
             opt.zero_grad()
             loss.backward()
             opt.step()
 
-            #print('optimise')
-
             # inverse fixed image and moving image
             flow_m2f = net(input_moving, input_fixed)
             m2f = STN(input_moving, flow_m2f)
-            #print('inverse')
 
             # Calculate loss
             sim_loss = sim_loss_fn(m2f, input_fixed)
             grad_loss = grad_loss_fn(flow_m2f)
             # zero_loss = zero_loss_fn(flow_m2f, zero)
             loss = sim_loss + args.alpha * grad_loss #  + zero_loss
-            #print('loss2')
-
-            #print( i, fig_name, loss.item(), sim_loss.item(), grad_loss.item())
+            
+            wandb.log({"sim_loss": sim_loss, "grad_loss": grad_loss, "loss": loss})
 
             # Backwards and optimize
             opt.zero_grad()
             loss.backward()
             opt.step()
-            #print('optimise2')
+            print('optimise2')
+            pair += 1
 
-        test_file_lst = glob.glob(os.path.join(args.test_dir, "*.nii.gz"))
+            
 
         net.eval()
         STN.eval()
         STN_label.eval()
 
+        
+
         DSC = []
-        for file in test_file_lst:
-            fig_name = file[58:60]
-            name = os.path.split(file)[1]
-            # 读入moving图像
 
-            t_img = sitk.ReadImage(file)
-            t_img = cropper.Execute(t_img)
+        for input_fixed, input_moving, moving_label, fixed_label, name1, name2 in input_validation_all:
+            
+            input_moving = input_moving.to(device).float()
+            input_fixed = input_fixed.to(device).float()
+            fixed_label = fixed_label.to(device).float()
+            moving_label = moving_label.to(device).float()
 
-            input_moving = sitk.GetArrayFromImage(t_img)[np.newaxis, np.newaxis, ...]
-            input_moving = torch.from_numpy(input_moving).to(device).float()
-            # 读入moving图像对应的label
-            label_file = glob.glob(os.path.join(args.label_dir, name[:3] + "*"))[0]
-            t_img = sitk.ReadImage(label_file)
-            t_img = cropper.Execute(t_img)
-            input_label = sitk.GetArrayFromImage(t_img)
-
-            # 获得配准后的图像和label
-            pred_flow = net(input_fixed_eval, input_moving)
-            pred_img = STN(input_fixed_eval, pred_flow)
+            pred_flow = net(input_fixed, input_moving)
+            pred_img = STN(input_fixed, pred_flow)
             pred_label = STN_label(fixed_label, pred_flow)
-            # pred_label = input_label # 用于测试初始的dice值
+            
+            if (i % 10 == 1) & (a == False):
 
-            # 计算DSC
-            dice = compute_label_dice(input_label, pred_label[0, 0, ...].cpu().detach().numpy())
-            print("{0}" .format(dice))
+                pred_flow_1 = net(input_moving, input_fixed)
+                pred_img_1 = STN(input_moving, pred_flow_1)
+                pred_label_1 = STN_label(moving_label, pred_flow)
+                a = True
+                plt.figure(1)
+                plt.subplot(2, 2, 1)
+                plt.imshow(input_fixed[0, 0, :, :, 50].cpu().detach().numpy(), cmap='gray')
+                plt.subplot(2, 2, 2)
+                plt.imshow(pred_img_1[0, 0, :, :, 50].cpu().detach().numpy(), cmap='gray')
+                plt.subplot(2, 2, 3)
+                plt.imshow(pred_flow_1[0, 0, :, :, 50].cpu().detach().numpy(), cmap='gray')
+                plt.subplot(2, 2, 4)
+                plt.imshow(pred_label_1[0, 0, :, :, 50].cpu().detach().numpy(), cmap='gray')
+                plt.show()
+                del pred_flow_1, pred_img_1, pred_label_1
+
+
+            dice = compute_label_dice(moving_label[0, 0, ...].cpu().detach().numpy(), pred_label[0, 0, ...].cpu().detach().numpy())
+            #print("{0}" .format(dice))
             DSC.append(dice)
 
             del pred_flow, pred_img, pred_label, input_moving
+        a = False
 
         print(np.mean(DSC), np.std(DSC))
-        save_checkpoint({
-            'epoch': i+1,
-            'state_dict': net.state_dict(),
-            'optimizer': opt.state_dict(),
-            }, save_dir='experiments/1212firstrunorigincode/', filename='dsc{:.4f}epoch{:0>3d}.pth.tar'.format(np.mean(DSC), i+1))
+        wandb.log({"mean_DSC": np.mean(DSC), "std_DSC": np.std(DSC)})
+
+        if i % args.n_save_iter == 0:
+            save_checkpoint({
+                'epoch': i+1,
+                'state_dict': net.state_dict(),
+                'optimizer': opt.state_dict(),
+                }, save_dir='D:/Matej/Documents/faks/obdelava slik/ams_mreza', filename='dsc{:.4f}epoch{:0>3d}.pth.tar'.format(np.mean(DSC), i+1))
 
     f.close()
+    wandb.finish()
 
 def save_checkpoint(state, save_dir='models', filename='checkpoint.pth.tar', max_model_num=8):
-    model_lists = natsorted(glob.glob(save_dir+  '*'))
-    while len(model_lists) > max_model_num:
-        os.remove(model_lists[0])
-        model_lists = natsorted(glob.glob(save_dir + '*'))
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
+    #model_lists = natsorted(glob.glob(save_dir+  '*'))
+    #while len(model_lists) > max_model_num:
+    #    os.remove(model_lists[0])
+    #    model_lists = natsorted(glob.glob(save_dir + '*'))
+    #if not os.path.exists(save_dir):
+    #    os.makedirs(save_dir)
     torch.save(state, save_dir+filename)
 
 if __name__ == "__main__":

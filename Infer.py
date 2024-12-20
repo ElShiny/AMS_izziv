@@ -6,16 +6,20 @@ import warnings
 import torch
 import numpy as np
 import SimpleITK as sitk
+import torch.utils.data as Data
 # internal imports
 from utils import losses
 from utils.config import args
-from utils.datagenerators_atlas import Dataset
+from utils.datagenerators_atlas import AMS_Dataset_val
 from Models.STN import SpatialTransformer
 from natsort import natsorted
+
 
 from Models.TransMatch import TransMatch
 
 import time
+import warnings
+warnings.filterwarnings("ignore")
 
 def count_parameters(model):
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
@@ -63,24 +67,21 @@ def train():
     print("log_name: ", log_name)
     f = open(os.path.join(args.log_dir, log_name + ".txt"), "w")
 
-    # 读入fixed图像 [D, W, H] = 160×192×160
-    f_img = sitk.ReadImage(args.atlas_file)
-    input_fixed = sitk.GetArrayFromImage(f_img)[np.newaxis, np.newaxis, ...]
-    vol_size = input_fixed.shape[2:]
-    # [B, C, D, W, H]
-    input_fixed_eval = torch.from_numpy(input_fixed).to(device).float()
+    #get image size
+    img_name = os.listdir(args.train_dir)[0]
+    t_img = sitk.ReadImage(args.train_dir+ "\\" + img_name)
+    t_arr = sitk.GetArrayFromImage(t_img)
+    t_arr = np.pad(t_arr, ((16, 16), (0, 0), (16, 16)), 'constant', constant_values=0)
+    t_arr_test = t_arr[::2, ::2, ::2]
+    vol_size = t_arr_test[:, :, :].shape
+    print(vol_size)
 
     # 创建配准网络（net）和STN
     net = TransMatch(args).to(device)
-    best_model = torch.load('./experiments/1212firstrunorigincode/dsc0.5870epoch002.pth.tar')['state_dict']
+    best_model = torch.load('./experiments/1212firstrunorigincode/ams_mrezadsc0.0593epoch021.pth.tar')['state_dict']
     net.load_state_dict(best_model)
+    #C:\Users\Matej\Documents\GitHub\AMS_izziv\experiments\1212firstrunorigincode\dsc0.6351epoch012.pth.tar
 
-    iterEpoch = 1
-    contTrain = False
-    if contTrain:
-        checkpoint = torch.load('./Checkpoint/500.pth')
-        net.load_state_dict(checkpoint)
-        iterEpoch = 501
 
     STN = SpatialTransformer(vol_size).to(device)
     STN_label = SpatialTransformer(vol_size, mode="nearest").to(device)
@@ -89,10 +90,10 @@ def train():
     STN.train()
 
     # Get all the names of the training data
-    train_files = glob.glob(os.path.join(args.train_dir, '*.nii.gz'))
-    DS = Dataset(files=train_files)
-    print("Number of training images: ", len(DS))
-    test_file_lst = glob.glob(os.path.join(args.test_dir, "*.nii.gz"))
+    DSV = AMS_Dataset_val(json_path=args.dataset_cfg)
+    print("Number of validating images: ", len(DSV))
+    DLV = Data.DataLoader(DSV, batch_size=1, shuffle=False, num_workers=0, drop_last=False)
+    input_validation_all = iter(DLV)
 
     net.eval()
     STN.eval()
@@ -100,25 +101,27 @@ def train():
 
     TIME = []
     with torch.no_grad():
-        for file in test_file_lst:
-            fig_name = file[58:60]
-            name = os.path.split(file)[1]
-            # 读入moving图像
-            input_moving = sitk.GetArrayFromImage(sitk.ReadImage(file))[np.newaxis, np.newaxis, ...]
-            input_moving = torch.from_numpy(input_moving).to(device).float()
-            # 读入moving图像对应的label
-            label_file = glob.glob(os.path.join(args.label_dir, name[:3] + "*"))[0]
-            input_label = sitk.GetArrayFromImage(sitk.ReadImage(label_file))[np.newaxis, np.newaxis, ...]
-            input_label = torch.from_numpy(input_label).to(device).float()
+        for input_fixed, input_moving, fixed_label, input_label, name1, name2 in input_validation_all:
+
+            #retarded fix
+            #print(str(name1[1])[2:-10])
+            tmpName = str(name2[1])[2:-10]
+            #f_img = sitk.ReadImage(args.train_dir + "\\" + str(name1[0])[2:-3] + "\\" + str(name1[1])[2:-3])
+            f_img = sitk.ReadImage(args.train_dir + "\\" + str(name2[1])[2:-3])
+            print(args.train_dir + "\\" + str(name2[1])[2:-3])
+
+            input_moving = input_moving.to(device).float()
+            input_fixed = input_fixed.to(device).float()
+            input_label = input_label.to(device).float()
 
             # 获得配准后的图像和label
             start = time.time()
-            pred_flow = net(input_moving, input_fixed_eval)
+            pred_flow = net(input_moving, input_fixed)
             pred_img = STN(input_moving, pred_flow)
             TIME.append(time.time() - start)
             pred_label = STN_label(input_label, pred_flow)
 
-            tmpName = str(file[60:63])  # please check the tmpName when you run by yourself
+            #tmpName = name1  # please check the tmpName when you run by yourself
             # print(tmpName)
             save_image(pred_img, f_img, tmpName + '_warpped.nii.gz')
             save_image(pred_flow.permute(0, 2, 3, 4, 1)[np.newaxis, ...], f_img, tmpName + "_flow.nii.gz")
