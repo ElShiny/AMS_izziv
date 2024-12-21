@@ -23,9 +23,9 @@ To setup and build docker:
 Docker file will automatically download CBCT images into /app/data.
 To run docker with downloaded images simply run:
 ```bash
-    docker run -it --runtime=nvidia matejs python Train.py --image_size 160 160 160 --window_size 5 5 5 --downsample True
+    docker run -it --runtime=nvidia YOUR_NAME python Train.py --image_size 160 160 160 --window_size 5 5 5 --downsample True
 ```
-If the --image_size matches the size of input images then --downsample True is not needed
+If the --image_size matches the size of input images then --downsample True is not needed.
 If you want to process decimated images for faster training, set --image_size to preffered size and use --downsample True
 
 Window size is cruical. Every image axis must be divisible by 32. ex: image of size (96, 128, 256) should use --window_size (3, 4, 8)
