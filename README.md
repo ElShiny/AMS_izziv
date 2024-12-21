@@ -1,4 +1,4 @@
-# AMS IZZIV - final report
+# AMS IZZIV - not so final report
 Name, Surname: Matej Šajn
 
 Model: Trans Match
