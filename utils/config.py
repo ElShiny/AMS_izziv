@@ -33,15 +33,15 @@ parser.add_argument("--downsample", type=bool, help="downsample to dimensions",
                     dest="downsample", default=False)
 # data paths
 parser.add_argument("--test_dir", type=str, help="test data directory",
-                    dest="test_dir", default='../../../Dataset/LPBA40_delineation/delineation_l_norm/test')
+                    dest="test_dir", default='/app/data/Release_06_12_23/imagesTr')
 parser.add_argument("--label_dir", type=str, help="label data directory",
-                    dest="label_dir", default='../../../Dataset/LPBA40_delineation/label')
+                    dest="label_dir", default='/app/data/Release_06_12_23/labelsTr')
 parser.add_argument("--dataset_cfg", type=str, help="dataset config file",
-                    dest="dataset_cfg", default='./dataset_cfg.json')
+                    dest="dataset_cfg", default='/app/data/Release_06_12_23/ThoraxCBCT_dataset.json')
 parser.add_argument("--model_dir", type=str, help="models folder",
                     dest="model_dir", default='./Checkpoint')
 parser.add_argument("--train_dir", type=str, help="data folder with training vols",
-                    dest="train_dir", default="../../../Dataset/LPBA40_delineation/delineation_l_norm/train")
+                    dest="train_dir", default="/app/data/Release_06_12_23/imagesTr")
 parser.add_argument("--mask_dir", type=str, help="data folder with masks",
                     dest="mask_dir", default="")
 
