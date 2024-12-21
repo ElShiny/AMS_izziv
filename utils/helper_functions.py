@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import SimpleITK as sitk
 import numpy as np
+import os
 
 
 def estimate_memory_usage(nn_mult, grid_sp, disp_hw, H, W, D):
@@ -137,7 +138,7 @@ def downsample_image(image, scale_factor=None, target_size=None, mode="nearest")
     :return: Downsampled 3D tensor
     """
     # Add batch and channel dimensions to use with F.interpolate
-    image = image.float().unsqueeze(0).unsqueeze(0)  # Shape becomes (1, 1, H, W, D)
+    #image = image.float().unsqueeze(0).unsqueeze(0)  # Shape becomes (1, 1, H, W, D)
 
     # Downsample using scale_factor or target_size
     if scale_factor is not None:
@@ -150,7 +151,7 @@ def downsample_image(image, scale_factor=None, target_size=None, mode="nearest")
         raise ValueError("Either scale_factor or target_size must be provided.")
 
     # Remove batch and channel dimensions
-    downsampled_image = downsampled_image.squeeze(0).squeeze(0)
+    #downsampled_image = downsampled_image.squeeze(0).squeeze(0)
     return downsampled_image
 
 def apply_displacement_field(img1, img2, disp, result):
@@ -211,3 +212,15 @@ def apply_mask(image, mask):
     :return: masked image
     """
     return image * mask
+
+def extract_id_from_filename(filepath):
+    # filepath example: /app/data/imagesTr/ThoraxCBCT_0011_0001.nii.gz
+    # We want to extract 0011_0001 from "ThoraxCBCT_0011_0001.nii.gz"
+    base = os.path.basename(filepath)
+    # base = ThoraxCBCT_0011_0001.nii.gz
+    # Remove prefix "ThoraxCBCT_"
+    name = base.replace("ThoraxCBCT_", "")
+    # name = 0011_0001.nii.gz
+    name = name.replace(".nii.gz", "")
+    # name = 0011_0001
+    return name

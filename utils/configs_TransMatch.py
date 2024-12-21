@@ -11,6 +11,8 @@ jchen245@jhmi.edu
 '''
 
 import ml_collections
+from utils.config import args
+import copy
 '''
 ********************************************************
                    Swin Transformer
@@ -48,7 +50,7 @@ def get_TransMatch_LPBA40_config():
     config.depths = (2, 2, 4, 2)
     config.num_heads = (4, 4, 8, 8)
     # config.num_heads = (4, 4, 8, 8)
-    config.window_size = (6, 6, 8)
+    config.window_size = tuple(args.window_size)
     config.mlp_ratio = 4
     config.pat_merg_rf = 4
     config.qkv_bias = False
@@ -60,5 +62,5 @@ def get_TransMatch_LPBA40_config():
     config.use_checkpoint = False
     config.out_indices = (0, 1, 2, 3)
     config.reg_head_chan = 16
-    config.img_size = (192, 192, 256)
+    config.img_size = tuple(args.image_size)
     return config

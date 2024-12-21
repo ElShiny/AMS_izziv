@@ -33,6 +33,7 @@ wandb.init(
     "dataset": "ThoraxCBCT",
     "epochs": args.n_iter,
     "learning_rate": args.lr,
+    "image_size": args.image_size,
 
     }
 )
@@ -46,8 +47,6 @@ def count_parameters(model):
 def make_dirs():
     if not os.path.exists(args.model_dir):
         os.makedirs(args.model_dir)
-    if not os.path.exists(args.log_dir):
-        os.makedirs(args.log_dir)
     if not os.path.exists(args.result_dir):
         os.makedirs(args.result_dir)
 
@@ -79,26 +78,13 @@ def train():
     #torch.use_deterministic_algorithms(True)
     device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else 'cpu')
 
-
-    # create a log file
-    log_name = str(args.n_iter) + "_" + str(args.lr) + "_" + str(args.alpha)
-    print("log_name: ", log_name)
-    f = open(os.path.join(args.log_dir, log_name + ".txt"), "w")
-
-    #get image size
-    img_name = os.listdir(args.train_dir)[0]
-    t_img = sitk.ReadImage(args.train_dir+ "\\" + img_name)
-    t_arr = sitk.GetArrayFromImage(t_img)
-    vol_size = t_arr.shape
-    print(vol_size)
-
     # configure net
     net = TransMatch(args).to(device)
 
     iterEpoch = 1
 
-    STN = SpatialTransformer(vol_size).to(device)
-    STN_label = SpatialTransformer(vol_size, mode="nearest").to(device)
+    STN = SpatialTransformer(args.image_size).to(device)
+    STN_label = SpatialTransformer(args.image_size, mode="nearest").to(device)
     net.train()
     STN.train()
 
@@ -121,7 +107,7 @@ def train():
 
     
 
-    # Training loop.
+    # Working loop
     for i in range(iterEpoch, args.n_iter + 1):
         
         # Generate the moving images and convert them to tensors.
@@ -132,14 +118,19 @@ def train():
         input_validation_all = iter(DLV)
         pair = 0
 
+        
+        # Training Loop
         for input_fixed, input_moving, fixed_name, moving_name in input_images_all:
             
-            # [B, C, D, W, H]
-            print(i, fixed_name, moving_name)
-
-            #fig_name = fig_name[0]
+            # To cuda gpu
+            print("fixed: ", fixed_name, "moving: ", moving_name)
             input_moving = input_moving.to(device).float()
             input_fixed = input_fixed.to(device).float()
+
+            # downsample if needed
+            if args.downsample is not False:
+                input_moving = downsample_image(input_moving, target_size=tuple(args.image_size))
+                input_fixed = downsample_image(input_fixed, target_size=tuple(args.image_size))
 
             # Run the data through the model to produce warp and flow field
             flow_m2f = net(input_fixed, input_moving)
@@ -172,11 +163,11 @@ def train():
             opt.zero_grad()
             loss.backward()
             opt.step()
-            print('optimise2')
+
             pair += 1
 
             
-
+        # switch to evaluation mode
         net.eval()
         STN.eval()
         STN_label.eval()
@@ -184,19 +175,28 @@ def train():
         
 
         DSC = []
-
+        # Validation Loop
         for input_fixed, input_moving, moving_label, fixed_label, name1, name2 in input_validation_all:
             
+            # To cuda gpu
             input_moving = input_moving.to(device).float()
             input_fixed = input_fixed.to(device).float()
             fixed_label = fixed_label.to(device).float()
             moving_label = moving_label.to(device).float()
 
+            if args.downsample is not False:
+                input_moving = downsample_image(input_moving, target_size=tuple(args.image_size))
+                input_fixed = downsample_image(input_fixed, target_size=tuple(args.image_size))
+                fixed_label = downsample_image(fixed_label, target_size=tuple(args.image_size))
+                moving_label = downsample_image(moving_label, target_size=tuple(args.image_size))
+
+            # Run the data through the model to produce warp and flow field
             pred_flow = net(input_fixed, input_moving)
             pred_img = STN(input_fixed, pred_flow)
             pred_label = STN_label(fixed_label, pred_flow)
             
-            if (i % 10 == 1) & (a == False):
+            # Partial results visualization - FOR DEBUGGING
+            if (i % 10 == 1) & (a == False) & (args.partial_results == True):
 
                 pred_flow_1 = net(input_moving, input_fixed)
                 pred_img_1 = STN(input_moving, pred_flow_1)
@@ -230,18 +230,19 @@ def train():
                 'epoch': i+1,
                 'state_dict': net.state_dict(),
                 'optimizer': opt.state_dict(),
-                }, save_dir='D:/Matej/Documents/faks/obdelava slik/ams_mreza', filename='dsc{:.4f}epoch{:0>3d}.pth.tar'.format(np.mean(DSC), i+1))
+                }, save_dir=args.model_dir, filename='dsc{:.4f}epoch{:0>3d}.pth.tar'.format(np.mean(DSC), i+1))
+            print("Model saved")
 
-    f.close()
+    #f.close()
     wandb.finish()
 
 def save_checkpoint(state, save_dir='models', filename='checkpoint.pth.tar', max_model_num=8):
-    #model_lists = natsorted(glob.glob(save_dir+  '*'))
-    #while len(model_lists) > max_model_num:
-    #    os.remove(model_lists[0])
-    #    model_lists = natsorted(glob.glob(save_dir + '*'))
-    #if not os.path.exists(save_dir):
-    #    os.makedirs(save_dir)
+    model_lists = natsorted(glob.glob(save_dir+  '*'))
+    while len(model_lists) > max_model_num:
+        os.remove(model_lists[0])
+        model_lists = natsorted(glob.glob(save_dir + '*'))
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
     torch.save(state, save_dir+filename) 
 
 if __name__ == "__main__":

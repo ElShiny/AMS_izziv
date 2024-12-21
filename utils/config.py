@@ -2,7 +2,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
-# 公共参数
+# setup
 parser.add_argument("--gpu", type=str, help="gpu id",
                     dest="gpu", default='0')
 parser.add_argument("--model", type=str, help="voxelmorph 1 or 2",
@@ -10,11 +10,7 @@ parser.add_argument("--model", type=str, help="voxelmorph 1 or 2",
 parser.add_argument("--result_dir", type=str, help="results folder",
                     dest="result_dir", default='./Result')
 
-# train时参数
-parser.add_argument("--train_dir", type=str, help="data folder with training vols",
-                    dest="train_dir", default="../../../Dataset/LPBA40_delineation/delineation_l_norm/train")
-parser.add_argument("--mask_dir", type=str, help="data folder with masks",
-                    dest="mask_dir", default="../../../Dataset/LPBA40_delineation/delineation_l_norm/train")
+# training
 parser.add_argument("--lr", type=float, help="learning rate",
                     dest="lr", default=4e-4)
 parser.add_argument("--n_iter", type=int, help="number of iterations",
@@ -22,18 +18,35 @@ parser.add_argument("--n_iter", type=int, help="number of iterations",
 parser.add_argument("--sim_loss", type=str, help="image similarity loss: mse or ncc",
                     dest="sim_loss", default='ncc')
 parser.add_argument("--alpha", type=float, help="regularization parameter",
-                    dest="alpha", default=4)  # recommend 1.0 for ncc, 0.01 for mse
+                    dest="alpha", default=4)  # refer to original paper. 4 for ncc, 0.004 for mse
 parser.add_argument("--batch_size", type=int, help="batch_size",
                     dest="batch_size", default=1)
 parser.add_argument("--n_save_iter", type=int, help="frequency of model saves",
                     dest="n_save_iter", default=20)
-parser.add_argument("--model_dir", type=str, help="models folder",
-                    dest="model_dir", default='./Checkpoint')
-parser.add_argument("--log_dir", type=str, help="logs folder",
-                    dest="log_dir", default='./Log')
+parser.add_argument("--image_size", type=int, nargs="+", help="image size",
+                    dest="image_size", default=(192, 192, 256))
+parser.add_argument("--window_size", type=int, nargs="+", help="patch size",
+                    dest="window_size", default=(6, 6, 8))
+parser.add_argument("--partial_results", type=bool, help="show partial results",
+                    dest="partial_results", default=False)
+parser.add_argument("--downsample", type=bool, help="downsample to dimensions",
+                    dest="downsample", default=False)
+# data paths
+parser.add_argument("--test_dir", type=str, help="test data directory",
+                    dest="test_dir", default='../../../Dataset/LPBA40_delineation/delineation_l_norm/test')
+parser.add_argument("--label_dir", type=str, help="label data directory",
+                    dest="label_dir", default='../../../Dataset/LPBA40_delineation/label')
 parser.add_argument("--dataset_cfg", type=str, help="dataset config file",
                     dest="dataset_cfg", default='./dataset_cfg.json')
-# train
+parser.add_argument("--model_dir", type=str, help="models folder",
+                    dest="model_dir", default='./Checkpoint')
+parser.add_argument("--train_dir", type=str, help="data folder with training vols",
+                    dest="train_dir", default="../../../Dataset/LPBA40_delineation/delineation_l_norm/train")
+parser.add_argument("--mask_dir", type=str, help="data folder with masks",
+                    dest="mask_dir", default="")
+
+
+# LEGACY args
 #parser.add_argument('--Training', default=False, type=bool, help='Training or not')
 #parser.add_argument('--init_method', default='tcp://127.0.0.1:33111', type=str, help='init_method')
 #parser.add_argument('--data_root', default='./Data/', type=str, help='data path')
@@ -50,8 +63,6 @@ parser.add_argument("--dataset_cfg", type=str, help="dataset config file",
 #parser.add_argument('--trainset', default='NJUD+NLPR+DUTLF-Depth', type=str, help='Trainging set')
 #parser.add_argument('--save_model_dir', default='checkpoint/', type=str, help='save model path')
 
-
-# test
 #parser.add_argument('--Testing', default=False, type=bool, help='Testing or not')
 #parser.add_argument('--save_test_path_root', default='preds/', type=str, help='save saliency maps path')
 #parser.add_argument('--test_paths', type=str, default='NJUD+NLPR+DUTLF-Depth+ReDWeb-S+STERE+SSD+SIP+RGBD135+LFSD')
@@ -59,11 +70,6 @@ parser.add_argument("--dataset_cfg", type=str, help="dataset config file",
 #parser.add_argument('--methods', type=str, default='RGBD_VST', help='evaluated method name')
 #parser.add_argument('--save_dir', type=str, default='./', help='path for saving result.txt')
 
-parser.add_argument("--test_dir", type=str, help="test data directory",
-                    dest="test_dir", default='../../../Dataset/LPBA40_delineation/delineation_l_norm/test')
-parser.add_argument("--label_dir", type=str, help="label data directory",
-                    dest="label_dir", default='../../../Dataset/LPBA40_delineation/label')
-parser.add_argument("--checkpoint_path", type=str, help="model weight file",
-                    dest="checkpoint_path", default="./Checkpoint/500.pth")
+
 
 args = parser.parse_args()
