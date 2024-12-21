@@ -13,8 +13,8 @@ parser.add_argument("--result_dir", type=str, help="results folder",
 # training
 parser.add_argument("--lr", type=float, help="learning rate",
                     dest="lr", default=4e-4)
-parser.add_argument("--n_iter", type=int, help="number of iterations",
-                    dest="n_iter", default=1400)
+parser.add_argument("--epochs", type=int, help="number of iterations",
+                    dest="n_iter", default=500)
 parser.add_argument("--sim_loss", type=str, help="image similarity loss: mse or ncc",
                     dest="sim_loss", default='ncc')
 parser.add_argument("--alpha", type=float, help="regularization parameter",
@@ -22,7 +22,7 @@ parser.add_argument("--alpha", type=float, help="regularization parameter",
 parser.add_argument("--batch_size", type=int, help="batch_size",
                     dest="batch_size", default=1)
 parser.add_argument("--n_save_iter", type=int, help="frequency of model saves",
-                    dest="n_save_iter", default=20)
+                    dest="n_save_iter", default=100)
 parser.add_argument("--image_size", type=int, nargs="+", help="image size",
                     dest="image_size", default=(192, 192, 256))
 parser.add_argument("--window_size", type=int, nargs="+", help="patch size",
