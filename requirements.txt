@@ -2,5 +2,6 @@ torch
 numpy
 simpleitk
 natsort
+matplotlib
 timm
 ml_collections

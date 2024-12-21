@@ -50,11 +50,11 @@ def train():
     device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else 'cpu')
 
     print("Image size: ", args.image_size)
-    
+
 
     # load the model
     net = TransMatch(args).to(device)
-    best_model = torch.load('./Checkpoint/ams_mrezadsc0.6611epoch521.pth.tar')['state_dict']
+    best_model = torch.load('./Checkpoint/Checkpointdsc0.2332epoch006.pth.tar')['state_dict']
     net.load_state_dict(best_model)
 
     STN = SpatialTransformer(tuple(args.image_size)).to(device)
@@ -76,18 +76,24 @@ def train():
     TIME = []
     with torch.no_grad():
         for input_fixed, input_moving, fixed_label, input_label, name1, name2 in input_validation_all:
+            #prepare a name for the output files
+            fixedName = extract_id_from_filename(str(name1)[2:-3])
+            movingName = extract_id_from_filename(str(name2)[2:-3])
+            tmpName = f"disp_{fixedName}_{movingName}"
 
-
-            fixedName = str(name1[1])[2:-10]
-            movingName = str(name2[1])[2:-10]
-            tmpName = fixedName + '_' + movingName
-
-            f_img = sitk.ReadImage(args.train_dir + "\\" + str(name2[1])[2:-3])
-            print(args.train_dir + "\\" + str(name2[1])[2:-3])
+            #read the reference image
+            f_img = sitk.ReadImage(args.train_dir + "\\" + os.path.basename(str(name2)[2:-3]))
+            #print(args.train_dir + "\\" + str(name2[1])[2:-3])
 
             input_moving = input_moving.to(device).float()
             input_fixed = input_fixed.to(device).float()
             input_label = input_label.to(device).float()
+
+            if args.downsample is not False:
+                input_moving = downsample_image(input_moving, target_size=tuple(args.image_size))
+                input_fixed = downsample_image(input_fixed, target_size=tuple(args.image_size))
+                fixed_label = downsample_image(fixed_label, target_size=tuple(args.image_size))
+                input_label = downsample_image(input_label, target_size=tuple(args.image_size))
 
             # get flow and warped image
             start = time.time()
@@ -97,7 +103,7 @@ def train():
             pred_label = STN_label(input_label, pred_flow)
 
             save_image(pred_img, f_img, tmpName + '_warpped.nii.gz')
-            save_image(pred_flow.permute(0, 2, 3, 4, 1)[np.newaxis, ...], f_img, tmpName + "_flow.nii.gz")
+            save_image(pred_flow.permute(0, 2, 3, 4, 1)[np.newaxis, ...], f_img, tmpName + ".nii.gz")
             save_image(pred_label, f_img, tmpName + "_label.nii.gz")
             del input_moving, input_label
             print('ok')
