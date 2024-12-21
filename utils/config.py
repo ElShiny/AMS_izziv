@@ -39,7 +39,7 @@ parser.add_argument("--label_dir", type=str, help="label data directory",
 parser.add_argument("--dataset_cfg", type=str, help="dataset config file",
                     dest="dataset_cfg", default='/app/data/Release_06_12_23/ThoraxCBCT_dataset.json')
 parser.add_argument("--model_dir", type=str, help="models folder",
-                    dest="model_dir", default='./Checkpoint')
+                    dest="model_dir", default='/app/Checkpoint/')
 parser.add_argument("--train_dir", type=str, help="data folder with training vols",
                     dest="train_dir", default="/app/data/Release_06_12_23/imagesTr")
 parser.add_argument("--mask_dir", type=str, help="data folder with masks",

@@ -238,12 +238,12 @@ def train():
     wandb.finish()
 
 def save_checkpoint(state, save_dir='models', filename='checkpoint.pth.tar', max_model_num=8):
-    model_lists = natsorted(glob.glob(save_dir+  '*'))
-    while len(model_lists) > max_model_num:
-        os.remove(model_lists[0])
-        model_lists = natsorted(glob.glob(save_dir + '*'))
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
+    #model_lists = natsorted(glob.glob(save_dir+  '*'))
+    #while len(model_lists) > max_model_num:
+    #    os.remove(model_lists[0])
+    #    model_lists = natsorted(glob.glob(save_dir + '*'))
+    #if not os.path.exists(save_dir):
+    #    os.makedirs(save_dir)
     torch.save(state, save_dir+filename) 
 
 if __name__ == "__main__":
