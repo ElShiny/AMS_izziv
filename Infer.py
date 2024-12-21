@@ -82,7 +82,7 @@ def train():
             tmpName = f"disp_{fixedName}_{movingName}"
 
             #read the reference image
-            f_img = sitk.ReadImage(args.train_dir + "\\" + os.path.basename(str(name2)[2:-3]))
+            f_img = sitk.ReadImage(args.train_dir + "/" + os.path.basename(str(name2)[2:-3]))
             #print(args.train_dir + "\\" + str(name2[1])[2:-3])
 
             input_moving = input_moving.to(device).float()

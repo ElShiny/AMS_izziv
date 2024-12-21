@@ -22,8 +22,8 @@ class AMS_Dataset(Data.Dataset):
 
     def __getitem__(self, index):
         #load the fixed and moving images
-        t_img_fx = sitk.ReadImage(args.train_dir + "\\" + self.json_pairs[index]["fixed"][1:].split('/')[-1])
-        t_img_mv = sitk.ReadImage(args.train_dir + "\\" + self.json_pairs[index]["moving"][1:].split('/')[-1])
+        t_img_fx = sitk.ReadImage(args.train_dir + "/" + self.json_pairs[index]["fixed"][1:].split('/')[-1])
+        t_img_mv = sitk.ReadImage(args.train_dir + "/" + self.json_pairs[index]["moving"][1:].split('/')[-1])
 
         #turn into a 4D tensor
         fixed_img = sitk.GetArrayFromImage(t_img_fx)[np.newaxis, ...]
@@ -44,8 +44,8 @@ class AMS_Dataset(Data.Dataset):
         
         #load and apply masks
         if args.mask_dir != "":
-            t_img_fx_msk = sitk.ReadImage(args.mask_dir + "\\"  + self.json_pairs[index]["fixed"][1:].split('/')[-1])
-            t_img_mv_msk = sitk.ReadImage(args.mask_dir + "\\"  + self.json_pairs[index]["moving"][1:].split('/')[-1])
+            t_img_fx_msk = sitk.ReadImage(args.mask_dir + "/"  + self.json_pairs[index]["fixed"][1:].split('/')[-1])
+            t_img_mv_msk = sitk.ReadImage(args.mask_dir + "/"  + self.json_pairs[index]["moving"][1:].split('/')[-1])
             fixed_msk = sitk.GetArrayFromImage(t_img_fx_msk)[np.newaxis, ...]
             moving_msk = sitk.GetArrayFromImage(t_img_mv_msk)[np.newaxis, ...]
 
@@ -76,10 +76,10 @@ class AMS_Dataset_val(Data.Dataset):
 
     def __getitem__(self, index):
         #load the fixed and moving images
-        t_img_fx = sitk.ReadImage(args.train_dir + "\\"  + self.json_pairs[index]["fixed"][1:].split('/')[-1])
-        t_img_mv = sitk.ReadImage(args.train_dir + "\\"  + self.json_pairs[index]["moving"][1:].split('/')[-1])
-        t_img_label_fx = sitk.ReadImage(args.label_dir + "\\"  + self.json_pairs[index]["fixed"].split('/')[-1])
-        t_img_label_mv = sitk.ReadImage(args.label_dir + "\\"  + self.json_pairs[index]["moving"].split('/')[-1])
+        t_img_fx = sitk.ReadImage(args.train_dir + "/"  + self.json_pairs[index]["fixed"][1:].split('/')[-1])
+        t_img_mv = sitk.ReadImage(args.train_dir + "/"  + self.json_pairs[index]["moving"][1:].split('/')[-1])
+        t_img_label_fx = sitk.ReadImage(args.label_dir + "/"  + self.json_pairs[index]["fixed"].split('/')[-1])
+        t_img_label_mv = sitk.ReadImage(args.label_dir + "/"  + self.json_pairs[index]["moving"].split('/')[-1])
 
 
         #turn into a 4D tensor
@@ -96,8 +96,8 @@ class AMS_Dataset_val(Data.Dataset):
 
         #load and apply masks
         if args.mask_dir != "":
-            t_img_fx_msk = sitk.ReadImage(args.mask_dir + "\\"  + self.json_pairs[index]["fixed"][1:].split('/')[-1])
-            t_img_mv_msk = sitk.ReadImage(args.mask_dir + "\\"  + self.json_pairs[index]["moving"][1:].split('/')[-1])
+            t_img_fx_msk = sitk.ReadImage(args.mask_dir + "/"  + self.json_pairs[index]["fixed"][1:].split('/')[-1])
+            t_img_mv_msk = sitk.ReadImage(args.mask_dir + "/"  + self.json_pairs[index]["moving"][1:].split('/')[-1])
 
             fixed_msk = sitk.GetArrayFromImage(t_img_fx_msk)[np.newaxis, ...]
             moving_msk = sitk.GetArrayFromImage(t_img_mv_msk)[np.newaxis, ...] 

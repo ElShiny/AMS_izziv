@@ -19,7 +19,7 @@ from utils.helper_functions import *
 import matplotlib.pyplot as plt
 import wandb
 
-#warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
 
 from Models.TransMatch import TransMatch
 
@@ -77,6 +77,7 @@ def train():
     torch.manual_seed(life)
     #torch.use_deterministic_algorithms(True)
     device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else 'cpu')
+    print(torch.cuda.is_available())
 
     # configure net
     net = TransMatch(args).to(device)
@@ -123,7 +124,7 @@ def train():
         for input_fixed, input_moving, fixed_name, moving_name in input_images_all:
             
             # To cuda gpu
-            print("fixed: ", fixed_name, "moving: ", moving_name)
+            #print("fixed: ", fixed_name, "moving: ", moving_name)
             input_moving = input_moving.to(device).float()
             input_fixed = input_fixed.to(device).float()
 

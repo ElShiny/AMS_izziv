@@ -1,5 +1,6 @@
 # Use the NVIDIA CUDA base image with CUDA 11.8, cuDNN 8, and Ubuntu 22.04
-FROM tensorflow/tensorflow:2.15.0-gpu
+FROM nvidia/cuda:11.5.2-cudnn8-runtime-ubuntu20.04
+FROM pytorch/pytorch:latest
 
 # Set environment variables to suppress prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -12,6 +13,7 @@ RUN apt-get update && \
         python3-dev \
         build-essential \
         wget \
+        unzip\
         git \
     && rm -rf /var/lib/apt/lists/*
 
@@ -28,8 +30,19 @@ COPY requirements.txt /app/
 RUN python3 -m pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir wandb==0.15.11
 
+#install torch
+RUN pip install torch
+
 # Copy the rest of your application code into the container
 COPY . /app
+
+WORKDIR /app/data
+RUN wget https://cloud.imi.uni-luebeck.de/s/xQPEy4sDDnHsmNg/download/ThoraxCBCT_OncoRegRelease_06_12_23.zip && unzip -q -o ThoraxCBCT_OncoRegRelease_06_12_23.zip
+RUN rm -r __MACOSX/ && rm ThoraxCBCT_OncoRegRelease_06_12_23.zip
+
+RUN wandb login 6cfd6d577d79858eeb83ea380188db50ab9b9818
+WORKDIR /app
+
 
 # Set the default command to bash
 CMD ["/bin/bash"]
