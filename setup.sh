@@ -89,6 +89,14 @@ if [ $? -eq 0 ]; then
     else
         echo "No Dockerfile found in the repository. Skipping Docker image build."
     fi
+
+    echo "Setup complete."
+    echo "To run the image with wandb use this command:"
+    echo "docker run -e WANDB_API_KEY -it -v ./data:/app/data -v ./output:/app/Checkpoint --runtime=nvidia transmatch python Train.py --image_size 160 160 192 --window_size 5 5 6 --downsample True"
+    echo "To run the image without wandb use this command:"
+    echo "docker run -it -v ./data:/app/data -v ./output:/app/Checkpoint  --runtime=nvidia transmatch python Train.py"
+    echo "For more information on arguments refer to the README.md file."
+
 else
     echo "Error: Failed to clone repository."
     exit 2

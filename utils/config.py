@@ -34,8 +34,8 @@ parser.add_argument("--downsample", type=bool, help="downsample to dimensions",
 parser.add_argument("--DICE_lst", type=int, nargs="+", help="list of classes to calculate DICE",
                     dest="DICE_lst", default=[1, 2, 3, 4, 5, 6, 7, 8, 10, 11])
 # data paths
-parser.add_argument("--test_dir", type=str, help="test data directory",
-                    dest="test_dir", default='/app/data/Release_06_12_23/imagesTr')
+#parser.add_argument("--test_dir", type=str, help="test data directory",
+#                    dest="test_dir", default='/app/data/Release_06_12_23/imagesTr')
 parser.add_argument("--label_dir", type=str, help="label data directory",
                     dest="label_dir", default='/app/data/Release_06_12_23/labelsTr')
 parser.add_argument("--dataset_cfg", type=str, help="dataset config file",
