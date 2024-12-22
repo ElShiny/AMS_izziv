@@ -37,6 +37,9 @@ if [ $? -eq 0 ]; then
         wget https://cloud.imi.uni-luebeck.de/s/xQPEy4sDDnHsmNg/download/ThoraxCBCT_OncoRegRelease_06_12_23.zip
         unzip -q -o ThoraxCBCT_OncoRegRelease_06_12_23.zip
         rm -r __MACOSX/ && rm ThoraxCBCT_OncoRegRelease_06_12_23.zip
+        wget --no-check-certificate https://www.dropbox.com/scl/fi/ncnr4vyfyrp0fj9cqv8to/LPBA40_delineation.zip?rlkey=x2ku5ec8cwr7uvh5bf7tp7lab -O LPBA40.zip
+        unzip -q -o LPBA40.zip
+        rm LPBA40.zip
         cd ..
 
         echo "Folder 'data' created and switched to it."
