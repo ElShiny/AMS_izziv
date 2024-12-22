@@ -35,7 +35,7 @@ if [ $? -eq 0 ]; then
         wget https://cloud.imi.uni-luebeck.de/s/xQPEy4sDDnHsmNg/download/ThoraxCBCT_OncoRegRelease_06_12_23.zip
         unzip -q -o ThoraxCBCT_OncoRegRelease_06_12_23.zip
         rm -r __MACOSX/ && rm ThoraxCBCT_OncoRegRelease_06_12_23.zip
-        cd..
+        cd ..
 
         echo "Folder 'data' created and switched to it."
         echo "You can now proceed to handle picture downloads into the 'data' folder."
