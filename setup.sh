@@ -79,14 +79,14 @@ if [ $? -eq 0 ]; then
         if [ -z "$WANDB_KEY" ]; then
             docker build -t transmatch .
         else
-            docker build --build-arg KEY="$WANDB_KEY" -t transmatch .
+            docker build -t transmatch .  --build-arg KEY="$WANDB_KEY"
         fi
         if [ $? -eq 0 ]; then
             echo "Docker image built successfully as 'transmatch'."
         else
             echo "Error: Failed to build Docker image."
         fi
-        mkdir -p output
+        mkdir output
     else
         echo "No Dockerfile found in the repository. Skipping Docker image build."
     fi
