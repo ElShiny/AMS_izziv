@@ -5,6 +5,9 @@ FROM pytorch/pytorch:latest
 # Set environment variables to suppress prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
+#args
+ARG KEY
+
 # Install dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -36,11 +39,11 @@ RUN pip install torch
 # Copy the rest of your application code into the container
 COPY . /app
 
-WORKDIR /app/data
-RUN wget https://cloud.imi.uni-luebeck.de/s/xQPEy4sDDnHsmNg/download/ThoraxCBCT_OncoRegRelease_06_12_23.zip && unzip -q -o ThoraxCBCT_OncoRegRelease_06_12_23.zip
-RUN rm -r __MACOSX/ && rm ThoraxCBCT_OncoRegRelease_06_12_23.zip
+#WORKDIR /app/data
+#RUN wget https://cloud.imi.uni-luebeck.de/s/xQPEy4sDDnHsmNg/download/ThoraxCBCT_OncoRegRelease_06_12_23.zip && unzip -q -o ThoraxCBCT_OncoRegRelease_06_12_23.zip
+#RUN rm -r __MACOSX/ && rm ThoraxCBCT_OncoRegRelease_06_12_23.zip
 
-RUN wandb login 6cfd6d577d79858eeb83ea380188db50ab9b9818
+RUN wandb login $KEY
 WORKDIR /app
 
 

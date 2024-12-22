@@ -23,6 +23,9 @@ warnings.filterwarnings("ignore")
 
 from Models.TransMatch import TransMatch
 
+print (os.environ)
+
+
 wandb.init(
     # set the wandb project where this run will be logged
     project="AMS_iziv",
