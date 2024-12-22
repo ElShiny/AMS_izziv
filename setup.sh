@@ -15,7 +15,12 @@ REPO_URL="https://github.com/ElShiny/AMS_izziv"
 # Assign destination directory if provided
 DEST_DIR=$1
 
-rm -rf AMS_izziv
+read -p "Clean Install? (yes/no): " CLEAN_INSTALL
+if [[ "$CLEAN_INSTALL" == "yes" || "$CLEAN_INSTALL" == "y" ]]; then
+    echo "Cleaning up previous installation..."
+    rm -rf AMS_izziv
+    rm -rf data
+fi
 
 # Clone the repository
 if [ -z "$DEST_DIR" ]; then
