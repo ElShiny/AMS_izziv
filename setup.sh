@@ -29,9 +29,9 @@ if [ $? -eq 0 ]; then
     echo "Repository cloned successfully."
 
     # Ask the user if they want to download pictures
+    mkdir -p data
     read -p "Do you want to download pictures from the repository? (yes/no): " DOWNLOAD_PICS
     if [[ "$DOWNLOAD_PICS" == "yes" || "$DOWNLOAD_PICS" == "y" ]]; then
-        mkdir -p data
         cd data || exit
 
         wget https://cloud.imi.uni-luebeck.de/s/xQPEy4sDDnHsmNg/download/ThoraxCBCT_OncoRegRelease_06_12_23.zip
