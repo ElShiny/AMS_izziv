@@ -43,7 +43,7 @@ COPY . /app
 #RUN wget https://cloud.imi.uni-luebeck.de/s/xQPEy4sDDnHsmNg/download/ThoraxCBCT_OncoRegRelease_06_12_23.zip && unzip -q -o ThoraxCBCT_OncoRegRelease_06_12_23.zip
 #RUN rm -r __MACOSX/ && rm ThoraxCBCT_OncoRegRelease_06_12_23.zip
 
-RUN RUN if [[ -z "$KEY" ]] ; then ; else wandb login $KEY ; fi
+RUN RUN if [[ -z "$KEY" ]] ; else wandb login $KEY ; fi
 WORKDIR /app
 
 

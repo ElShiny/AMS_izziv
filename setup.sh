@@ -15,6 +15,8 @@ REPO_URL="https://github.com/ElShiny/AMS_izziv"
 # Assign destination directory if provided
 DEST_DIR=$1
 
+rm -rf AMS_izziv
+
 # Clone the repository
 if [ -z "$DEST_DIR" ]; then
     git clone "$REPO_URL"
@@ -65,9 +67,12 @@ if [ $? -eq 0 ]; then
     # Build a Docker image from the Dockerfile
     if [ -f Dockerfile ]; then
         echo "Dockerfile found. Building Docker image..."
-        docker build --build-arg KEY="$WANDB_KEY" -t repo_image .
+        if [ -z "$WANDB_KEY" ]; then
+            docker build -t transmatch .
+        else
+            docker build --build-arg KEY="$WANDB_KEY" -t transmatch .
         if [ $? -eq 0 ]; then
-            echo "Docker image built successfully as 'repo_image'."
+            echo "Docker image built successfully as 'transmatch'."
         else
             echo "Error: Failed to build Docker image."
         fi
