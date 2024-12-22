@@ -71,6 +71,7 @@ if [ $? -eq 0 ]; then
             docker build -t transmatch .
         else
             docker build --build-arg KEY="$WANDB_KEY" -t transmatch .
+        fi
         if [ $? -eq 0 ]; then
             echo "Docker image built successfully as 'transmatch'."
         else
