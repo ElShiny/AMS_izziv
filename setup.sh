@@ -76,11 +76,8 @@ if [ $? -eq 0 ]; then
     # Build a Docker image from the Dockerfile
     if [ -f Dockerfile ]; then
         echo "Dockerfile found. Building Docker image..."
-        if [ -z "$WANDB_KEY" ]; then
-            docker build -t transmatch .
-        else
-            docker build -t transmatch .  --build-arg KEY="$WANDB_KEY"
-        fi
+        docker build -t transmatch .
+
         if [ $? -eq 0 ]; then
             echo "Docker image built successfully as 'transmatch'."
         else

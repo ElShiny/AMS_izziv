@@ -23,7 +23,9 @@ warnings.filterwarnings("ignore")
 
 from Models.TransMatch import TransMatch
 
-print (os.environ)
+#print (os.environ)
+if 'WANDB_API_KEY' in os.environ:
+    wandb.login(key=os.environ['WANDB_API_KEY'])
 
 
 wandb.init(

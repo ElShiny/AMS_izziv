@@ -39,14 +39,6 @@ RUN pip install torch
 # Copy the rest of your application code into the container
 COPY . /app
 
-WORKDIR /app/data
-#RUN wget https://cloud.imi.uni-luebeck.de/s/xQPEy4sDDnHsmNg/download/ThoraxCBCT_OncoRegRelease_06_12_23.zip && unzip -q -o ThoraxCBCT_OncoRegRelease_06_12_23.zip
-#RUN rm -r __MACOSX/ && rm ThoraxCBCT_OncoRegRelease_06_12_23.zip
-
-RUN if [[ -n "$KEY" ]] ; then wandb login $KEY ; fi
-WORKDIR /app
-
-
 # Set the default command to bash
 CMD ["/bin/bash"]
 
