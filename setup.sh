@@ -81,6 +81,7 @@ if [ $? -eq 0 ]; then
         else
             echo "Error: Failed to build Docker image."
         fi
+        mkdir -p output
     else
         echo "No Dockerfile found in the repository. Skipping Docker image build."
     fi
