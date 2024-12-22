@@ -27,8 +27,8 @@ from Models.TransMatch import TransMatch
 if 'WANDB_API_KEY' in os.environ:
     wandb.login(key=os.environ['WANDB_API_KEY'])
 
-
-wandb.init(
+if 'WANDB_API_KEY' in os.environ:
+    wandb.init(
     # set the wandb project where this run will be logged
     project="AMS_iziv",
 
@@ -39,9 +39,8 @@ wandb.init(
     "epochs": args.n_iter,
     "learning_rate": args.lr,
     "image_size": args.image_size,
-
     }
-)
+    )
 
 def count_parameters(model):
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
@@ -163,7 +162,8 @@ def train():
             # zero_loss = zero_loss_fn(flow_m2f, zero)
             loss = sim_loss + args.alpha * grad_loss #  + zero_loss
             
-            wandb.log({"sim_loss": sim_loss, "grad_loss": grad_loss, "loss": loss})
+            if 'WANDB_API_KEY' in os.environ:
+                wandb.log({"sim_loss": sim_loss, "grad_loss": grad_loss, "loss": loss})
 
             # Backwards and optimize
             opt.zero_grad()
@@ -229,7 +229,9 @@ def train():
         a = False
 
         print(np.mean(DSC), np.std(DSC))
-        wandb.log({"mean_DSC": np.mean(DSC), "std_DSC": np.std(DSC)})
+
+        if 'WANDB_API_KEY' in os.environ:
+            wandb.log({"mean_DSC": np.mean(DSC), "std_DSC": np.std(DSC)})
 
         if i % args.n_save_iter == 0:
             save_checkpoint({
@@ -240,7 +242,8 @@ def train():
             print("Model saved")
 
     #f.close()
-    wandb.finish()
+    if 'WANDB_API_KEY' in os.environ:
+        wandb.finish()
 
 def save_checkpoint(state, save_dir='models', filename='checkpoint.pth.tar', max_model_num=8):
     #model_lists = natsorted(glob.glob(save_dir+  '*'))
