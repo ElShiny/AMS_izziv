@@ -64,7 +64,7 @@ def save_image(img, ref_img, name):
 
 def compute_label_dice(gt, pred):
     # list of classes to calculate
-    cls_lst = [1,2,3,4,5,6,7,8,10,11]
+    cls_lst = args.DICE_lst
     # cls_lst = [182]
     dice_lst = []
     for cls in cls_lst:

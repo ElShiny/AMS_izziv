@@ -31,6 +31,8 @@ parser.add_argument("--partial_results", type=bool, help="show partial results",
                     dest="partial_results", default=False)
 parser.add_argument("--downsample", type=bool, help="downsample to dimensions",
                     dest="downsample", default=False)
+parser.add_argument("--DICE_lst", type=int, nargs="+", help="list of classes to calculate DICE",
+                    dest="DICE_lst", default=[1, 2, 3, 4, 5, 6, 7, 8, 10, 11])
 # data paths
 parser.add_argument("--test_dir", type=str, help="test data directory",
                     dest="test_dir", default='/app/data/Release_06_12_23/imagesTr')
