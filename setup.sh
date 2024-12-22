@@ -89,6 +89,7 @@ if [ $? -eq 0 ]; then
     else
         echo "No Dockerfile found in the repository. Skipping Docker image build."
     fi
+    cd ..
 
     echo "Setup complete."
     echo "To run the image with wandb use this command:"
