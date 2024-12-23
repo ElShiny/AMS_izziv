@@ -45,8 +45,13 @@ To remove containers and images use:
 ```bash
 docker container rm transmatch
 ```
+```bash
+docker rmi transmatch
+```
 
-Docker container has 3 possible mounted volumes. `/app/data` mounts to your data folder with images. `/app/Checkpoint` mounts to folder where it can periodically save snapshots of trained network. `/app/out_fields` mounts to folder for outputted deformation fields. Only used when testing the model.<br/>
+Docker container has 3 possible mounted volumes. `/app/data` mounts to your data folder with images.<br/>
+`/app/Checkpoint` mounts to folder where it can periodically save snapshots of trained network.<br/>
+`/app/out_fields` mounts to folder for outputted deformation fields. Only used when testing the model.<br/>
 If you use Nvidia GPU include `--runtime=nvidia`. Training script is `Train.py` and testing is `Infer.py`. If you want interactive shell use `-it`. To use WandB KEY add `-e WANDB_API_KEY`<br/>
 
 Example commands:
@@ -66,11 +71,11 @@ All the images should be in the same folder. Their relations and uses should be 
 ### Running with ThoraxCBCT dataset
 To run docker with ThoraxCBCT dataset simply run:
 ```bash
-docker run --runtime=nvidia --name transmatch -it -v ./data:/app/data -v ./output:/app/Checkpoint transmatch python Train.py --image_size 160 160 160 --window_size 5 5 5 --downsample True
+docker run --runtime=nvidia --name transmatch -it -v ./data:/app/data -v ./output:/app/Checkpoint transmatch python Train.py --image_size 96 96 96 --window_size 3 3 3 --downsample True
 ```
 Or to run it with WandB:
 ```bash
-docker run --runtime=nvidia --name transmatch -it -e WANDB_API_KEY -v ./data:/app/data -v ./output:/app/Checkpoint transmatch python Train.py --image_size 160 160 160 --window_size 5 5 5 --downsample True 
+docker run --runtime=nvidia --name transmatch -it -e WANDB_API_KEY -v ./data:/app/data -v ./output:/app/Checkpoint transmatch python Train.py --image_size 96 96 96 --window_size 3 3 3 --downsample True 
 ```
 
 ### Running with LPBA40 dataset
@@ -88,20 +93,22 @@ Using --DICE_lst is not necessary. It is used for DICE score calculation. Useful
 If the --image_size matches the size of input images then --downsample True is not needed.<br/>
 If you want to process decimated images for faster training, set --image_size to preffered size and use --downsample True<br/>
 Window size is cruical. Every image axis should be divisible by 32.<br/>
-ex: image of size (96, 128, 256) should use --window_size (3, 4, 8)<br/>
+Ex: image of size (96, 128, 256) should use `--window_size 3 4 8`<br/>
 Image size of 160, 160, 192 is about as much as RTX 4060 can manage. Some code optimisation is necessary.
 
 ## Test Commands
 ### Testing with ThoraxCBCT dataset
 Similar as train command, added volume mount for output deformation fields. Use the same image and window sizes you used in training.
 ```bash
-docker run --runtime=nvidia --name transmatch -it -v ./data:/app/data -v ./output:/app/Checkpoint -v ./out_fields:/app/out_fields transmatch python Infer.py --image_size 96 96 96 --window_size 3 3 3 --downsample True --model_save_dir /app/Checkpoint/dsc0.5975epoch011.pth.tar
+docker run --runtime=nvidia --name transmatch -it -v ./data:/app/data -v ./output:/app/Checkpoint -v ./out_fields:/app/out_fields transmatch python Infer.py --image_size 96 96 96 --window_size 3 3 3 --downsample True --model_save_dir /app/Checkpoint/[MODEL_NAME]
 ```
 
 ### Testing with LPBA40 dataset
 ```bash
-docker run --runtime=nvidia --name transmatch -it -e WANDB_API_KEY -v ./data:/app/data -v ./output:/app/Checkpoint -v ./out_fields:/app/out_fields transmatch python Infer.py --image_size 96 96 96 --window_size 3 3 3 --downsample True --dataset_cfg /app/data/LPBA40/dataset.json --train_dir /app/data/LPBA40/train --label_dir /app/data/LPBA40/label
+docker run --runtime=nvidia --name transmatch -it -v ./data:/app/data -v ./output:/app/Checkpoint -v ./out_fields:/app/out_fields transmatch python Infer.py --image_size 96 96 96 --window_size 3 3 3 --downsample True --dataset_cfg /app/data/LPBA40/dataset.json --train_dir /app/data/LPBA40/train --label_dir /app/data/LPBA40/label --model_save_dir /app/Checkpoint/[MODEL_NAME]
 ```
+
+Calculated deformation fields will be in `out_fields`
 
 ## Configuration variables
 `--gpu`         Set to preffered GPU if you have multiple.<br/>
