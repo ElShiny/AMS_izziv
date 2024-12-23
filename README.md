@@ -1,5 +1,5 @@
 # AMS IZZIV - not so final report
-Welcome to the repository of TransMatch for image registration. 
+Welcome to the TransMatch repository for medical image registration. 
 
 ## Previous work
 This is a fork of original TransMatch model from: [here](https://github.com/tzayuan/TransMatch_TMI)<br/>And the original [paper](https://ieeexplore.ieee.org/abstract/document/10158729/)
