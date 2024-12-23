@@ -1,20 +1,22 @@
 # AMS IZZIV - not so final report
-Name, Surname: Matej Šajn
+Welcome to the repository of TransMatch for image registration. 
 
-Model: Trans Match
+## Previous work
+This is a fork of original TransMatch model from: [here](https://github.com/tzayuan/TransMatch_TMI)<br/>And the original [paper](https://ieeexplore.ieee.org/abstract/document/10158729/)
 
-Location: Its here?
-
-## Original work
-This is a fork of original TransMatch model from:
-[here](https://github.com/tzayuan/TransMatch_TMI)<br/>
-And the original [paper](https://ieeexplore.ieee.org/abstract/document/10158729/)
 
 ## Results
-Results on school data are inconclusive. Model cannot converge... yet
+Results are shown for the original dataset LPBA40 with 500 epochs and a learning rate of 0.0004. Optimization is performed with adaptive moment estimation "Adam". Loss function consisted of MSE and LNCC with weights of 0.04 and 4.
 
-Results of the original dataset LPBA40 were as described in the original paper. 
-Model converged with DICE score 0.611 using image decimation. will update with results later.
+Results visualisation is done with Weights and Biases module. 
+![training](/images/LPBA40_run.PNG)
+
+Results are consistent with ones in the original paper. Model converged with final DICE score of 0.66.
+
+With the ThoraxCBCT dataset the results were inconclusive. After a lot of tweaking parameters I still could not get the model to converge. Below are results of multiple runs.
+![training_Thorax](/images/ThoraxCBCT_run.PNG)
+
+
 
 ## Auto setup script
 This project is equipped with a automatic setup script **setup.sh** that will prepare *almost* everything for you.
