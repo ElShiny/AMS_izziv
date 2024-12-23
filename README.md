@@ -82,7 +82,8 @@ Using --DICE_lst is not necessary. It is used for DICE score calculation. Useful
 
 If the --image_size matches the size of input images then --downsample True is not needed.<br/>
 If you want to process decimated images for faster training, set --image_size to preffered size and use --downsample True<br/>
-Window size is cruical. Every image axis should be divisible by 32. ex: image of size (96, 128, 256) should use --window_size (3, 4, 8)<br/>
+Window size is cruical. Every image axis should be divisible by 32.<br/>
+ex: image of size (96, 128, 256) should use --window_size (3, 4, 8)<br/>
 Image size of 160, 160, 192 is about as much as RTX 4060 can manage. Some code optimisation is necessary.
 
 ## Test Commands
@@ -108,7 +109,7 @@ docker run --runtime=nvidia -it -e WANDB_API_KEY -v ./data:/app/data -v ./output
 `--image_size`  Sets the wanted image size. Ex: `--image_size 96 96 96`<br/>
 `--window_size` Sets the window size.  Ex: `--window_size 3 3 3`<br/>
 `--partial_results` Shows warped images and labels with current model. Only use for testing code.<br/>
-`--downsample`  If you use smaller image size than input images you must set this to True`.<br/>
+`--downsample`  If you use smaller image size than input images you must set this to True.<br/>
 `--DICE_lst`    Used for inputting custom label list for other datasets. Ex: `--DICE_lst 1 2 3 4`<br/>
 `--norm`        Set this if you want to use normalisation. Supports minmax and meanstd normalisation.<br/>
 `--label_dir`   Label data directory.<br/>
