@@ -182,7 +182,7 @@ def train():
 
         DSC = []
         # Validation Loop
-        for input_fixed, input_moving, moving_label, fixed_label, name1, name2 in input_validation_all:
+        for input_fixed, input_moving, fixed_label, moving_label, name1, name2 in input_validation_all:
             
             # To cuda gpu
             input_moving = input_moving.to(device).float()
