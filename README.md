@@ -49,7 +49,8 @@ docker container rm transmatch
 docker rmi transmatch
 ```
 
-Docker container has 3 possible mounted volumes. `/app/data` mounts to your data folder with images.<br/>
+Docker container has 3 possible mounted volumes.<br/>
+`/app/data` mounts to your data folder with images.<br/>
 `/app/Checkpoint` mounts to folder where it can periodically save snapshots of trained network.<br/>
 `/app/out_fields` mounts to folder for outputted deformation fields. Only used when testing the model.<br/>
 If you use Nvidia GPU include `--runtime=nvidia`. Training script is `Train.py` and testing is `Infer.py`. If you want interactive shell use `-it`. To use WandB KEY add `-e WANDB_API_KEY`<br/>
