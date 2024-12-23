@@ -40,7 +40,7 @@ if [ $? -eq 0 ]; then
     # Ask the user if they want to download pictures
     mkdir -p data
     mkdir -p output
-    read -p "Do you want to download pictures from the repository? (yes/no): " DOWNLOAD_PICS
+    read -p "Do you want to download training datasets? (yes/no): " DOWNLOAD_PICS
     if [[ "$DOWNLOAD_PICS" == "yes" || "$DOWNLOAD_PICS" == "y" ]]; then
         cd data || exit
 
