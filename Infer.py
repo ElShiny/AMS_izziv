@@ -40,7 +40,7 @@ def save_image(img, ref_img, name):
     img.SetOrigin(ref_img.GetOrigin())
     img.SetDirection(ref_img.GetDirection())
     img.SetSpacing(ref_img.GetSpacing())
-    sitk.WriteImage(img, os.path.join('./Result', name))
+    sitk.WriteImage(img, os.path.join(args.result_dir, name))
 
 
 def train():
@@ -54,7 +54,7 @@ def train():
 
     # load the model
     net = TransMatch(args).to(device)
-    best_model = torch.load('./Checkpoint/Checkpointdsc0.2332epoch006.pth.tar')['state_dict']
+    best_model = torch.load(args.model_dir)['state_dict']
     net.load_state_dict(best_model)
 
     STN = SpatialTransformer(tuple(args.image_size)).to(device)
@@ -102,20 +102,12 @@ def train():
             TIME.append(time.time() - start)
             pred_label = STN_label(input_label, pred_flow)
 
-            save_image(pred_img, f_img, tmpName + '_warpped.nii.gz')
+            save_image(pred_img, f_img, tmpName + '_warped.nii.gz')
             save_image(pred_flow.permute(0, 2, 3, 4, 1)[np.newaxis, ...], f_img, tmpName + ".nii.gz")
-            save_image(pred_label, f_img, tmpName + "_label.nii.gz")
+            save_image(pred_label, f_img, tmpName + "_warped_label.nii.gz")
             del input_moving, input_label
             print('ok')
         print(np.mean(TIME))
-
-
-def save_checkpoint(state, save_dir='models', filename='checkpoint.pth.tar', max_model_num=8):
-    model_lists = natsorted(glob.glob(save_dir+  '*'))
-    while len(model_lists) > max_model_num:
-        os.remove(model_lists[0])
-        model_lists = natsorted(glob.glob(save_dir + '*'))
-    torch.save(state, save_dir+filename)
 
 if __name__ == "__main__":
     with warnings.catch_warnings():

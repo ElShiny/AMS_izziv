@@ -29,18 +29,21 @@ class AMS_Dataset(Data.Dataset):
         fixed_img = sitk.GetArrayFromImage(t_img_fx)[np.newaxis, ...]
         moving_img = sitk.GetArrayFromImage(t_img_mv)[np.newaxis, ...]
 
-        #normalising by subtracting the mean and dividing by the standard deviation
-        #fixed_img = (fixed_img - fixed_img.mean()) / fixed_img.std()
-        #moving_img = (moving_img - moving_img.mean()) / moving_img.std()
+        if args.norm == 'meanstd':
+            #normalising by subtracting the mean and dividing by the standard deviation
+            fixed_img = (fixed_img - fixed_img.mean()) / fixed_img.std()
+            moving_img = (moving_img - moving_img.mean()) / moving_img.std()
+        elif args.norm == 'minmax':
+            #normalising by min-max scaling
+            min_fx = fixed_img.min()
+            max_fx = fixed_img.max()
+            fixed_img = (fixed_img-min_fx)/(max_fx-min_fx)
 
-        #normalising by min-max scaling
-        min_fx = fixed_img.min()
-        max_fx = fixed_img.max()
-        fixed_img = (fixed_img-min_fx)/(max_fx-min_fx)
-
-        min_mv = moving_img.min()
-        max_mv = moving_img.max()
-        moving_img = (moving_img-min_mv)/(max_mv-min_mv)
+            min_mv = moving_img.min()
+            max_mv = moving_img.max()
+            moving_img = (moving_img-min_mv)/(max_mv-min_mv)
+        else :
+            pass
         
         #load and apply masks
         if args.mask_dir != "":
@@ -88,18 +91,22 @@ class AMS_Dataset_val(Data.Dataset):
         fixed_label = sitk.GetArrayFromImage(t_img_label_fx)[np.newaxis, ...]
         moving_label = sitk.GetArrayFromImage(t_img_label_mv)[np.newaxis, ...]
 
-        #normalising by subtracting the mean and dividing by the standard deviation
-        #fixed_img = (fixed_img - fixed_img.mean()) / fixed_img.std()
-        #moving_img = (moving_img - moving_img.mean()) / moving_img.std()
+        if args.norm == 'meanstd':
+            #normalising by subtracting the mean and dividing by the standard deviation
+            fixed_img = (fixed_img - fixed_img.mean()) / fixed_img.std()
+            moving_img = (moving_img - moving_img.mean()) / moving_img.std()
+            
+        elif args.norm == 'minmax':
+            #normalising by min-max scaling
+            min_fx = fixed_img.min()
+            max_fx = fixed_img.max()
+            fixed_img = (fixed_img-min_fx)/(max_fx-min_fx)
 
-        #normalising by min-max scaling
-        min_fx = fixed_img.min()
-        max_fx = fixed_img.max()
-        fixed_img = (fixed_img-min_fx)/(max_fx-min_fx)
-
-        min_mv = moving_img.min()
-        max_mv = moving_img.max()
-        moving_img = (moving_img-min_mv)/(max_mv-min_mv)
+            min_mv = moving_img.min()
+            max_mv = moving_img.max()
+            moving_img = (moving_img-min_mv)/(max_mv-min_mv)
+        else :
+            pass
 
 
 

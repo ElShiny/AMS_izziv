@@ -7,8 +7,6 @@ parser.add_argument("--gpu", type=str, help="gpu id",
                     dest="gpu", default='0')
 parser.add_argument("--model", type=str, help="voxelmorph 1 or 2",
                     dest="model", choices=['vm1', 'vm2'], default='vm2')
-parser.add_argument("--result_dir", type=str, help="results folder",
-                    dest="result_dir", default='./Result')
 
 # training
 parser.add_argument("--lr", type=float, help="learning rate",
@@ -33,6 +31,8 @@ parser.add_argument("--downsample", type=bool, help="downsample to dimensions",
                     dest="downsample", default=False)
 parser.add_argument("--DICE_lst", type=int, nargs="+", help="list of classes to calculate DICE",
                     dest="DICE_lst", default=[1, 2, 3, 4, 5, 6, 7, 8, 10, 11])
+parser.add_argument("--norm", type=str, help="normalization type",
+                    dest="norm", choices=['minmax', 'meanstd', 'None'], default='minmax')
 # data paths
 #parser.add_argument("--test_dir", type=str, help="test data directory",
 #                    dest="test_dir", default='/app/data/Release_06_12_23/imagesTr')
@@ -40,12 +40,14 @@ parser.add_argument("--label_dir", type=str, help="label data directory",
                     dest="label_dir", default='/app/data/Release_06_12_23/labelsTr')
 parser.add_argument("--dataset_cfg", type=str, help="dataset config file",
                     dest="dataset_cfg", default='/app/data/Release_06_12_23/ThoraxCBCT_dataset.json')
-parser.add_argument("--model_dir", type=str, help="models folder",
+parser.add_argument("--model_save_dir", type=str, help="models folder",
                     dest="model_dir", default='/app/Checkpoint/')
 parser.add_argument("--train_dir", type=str, help="data folder with training vols",
                     dest="train_dir", default="/app/data/Release_06_12_23/imagesTr")
 parser.add_argument("--mask_dir", type=str, help="data folder with masks",
                     dest="mask_dir", default="")
+parser.add_argument("--result_dir", type=str, help="results folder",
+                    dest="result_dir", default='/app/out_fields')
 
 
 # LEGACY args

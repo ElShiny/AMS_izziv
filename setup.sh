@@ -21,6 +21,9 @@ if [[ "$CLEAN_INSTALL" == "yes" || "$CLEAN_INSTALL" == "y" ]]; then
     rm -rf AMS_izziv
     rm -rf data
     rm -rf output
+    rm -rf out_fields
+    docker rm transmatch
+    docker rmi transmatch
 fi
 
 # Clone the repository
@@ -85,12 +88,14 @@ if [ $? -eq 0 ]; then
         else
             echo "Error: Failed to build Docker image."
         fi
-        mkdir output
     else
         echo "No Dockerfile found in the repository. Skipping Docker image build."
     fi
     cd ..
 
+    mkdir output
+    mkdir out_fields
+    
     echo "Setup complete."
     echo "To run the image with wandb use this command:"
     echo "docker run -e WANDB_API_KEY -it -v ./data:/app/data -v ./output:/app/Checkpoint --runtime=nvidia transmatch python Train.py --image_size 160 160 192 --window_size 5 5 6 --downsample True"
