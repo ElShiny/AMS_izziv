@@ -2,14 +2,13 @@
 Name, Surname: Matej Šajn
 
 Model: Trans Match
-```bash
-```
 
 Location: Its here?
 
-## Challenge
+## Original work
 This is a fork of original TransMatch model from:
-[here](https://github.com/tzayuan/TransMatch_TMI)
+[here](https://github.com/tzayuan/TransMatch_TMI)<br/>
+And the original [paper](https://ieeexplore.ieee.org/abstract/document/10158729/)
 
 ## Results
 Results on school data are inconclusive. Model cannot converge... yet
@@ -97,3 +96,26 @@ docker run -it -v ./data:/app/data -v ./output:/app/Checkpoint -v ./out_fields:/
 ```bash
 docker run --runtime=nvidia -it -e WANDB_API_KEY -v ./data:/app/data -v ./output:/app/Checkpoint -v ./out_fields:/app/out_fields transmatch python Infer.py --image_size 96 96 96 --window_size 3 3 3 --downsample True --dataset_cfg /app/data/LPBA40/dataset.json --train_dir /app/data/LPBA40/train --label_dir /app/data/LPBA40/label
 ```
+
+## Configuration variables
+`--gpu`         Set to preffered GPU if you have multiple.<br/>
+`--model`       Voxelmorph 1 or 2.<br/>
+`--lr`          Set learning rate.<br/>
+`--epochs`      Set the number of epochs to run.<br/>
+`--sim_loss`    Image similarity loss algorithm. mse or ncc.<br/>
+`--alpha`       Regularisation parameter.<br/>
+`--n_save_iter` Sets how frequently to save the model. Every n-th epoch.<br/>
+`--image_size`  Sets the wanted image size. Ex: `--image_size 96 96 96`<br/>
+`--window_size` Sets the window size.  Ex: `--window_size 3 3 3`<br/>
+`--partial_results` Shows warped images and labels with current model. Only use for testing code.<br/>
+`--downsample`  If you use smaller image size than input images you must set this to True`.<br/>
+`--DICE_lst`    Used for inputting custom label list for other datasets. Ex: `--DICE_lst 1 2 3 4`<br/>
+`--norm`        Set this if you want to use normalisation. Supports minmax and meanstd normalisation.<br/>
+`--label_dir`   Label data directory.<br/>
+`--dataset_cfg` Dataset configuration JSON file.<br/>
+`--model_save_dir`  Directory to save the model.<br/>
+`--train_dir`   Directory to images.<br/>
+`--mask_dir`    If you want to use masks add a maks directory link.<br/>
+`--result_dir`  Directory for saving output deformation fields.<br/>
+
+For more information check `utils/config.py`
